@@ -22,7 +22,7 @@ internal static class OllamaEndpoints
                 providerRegistry.Providers.Select(p => p.Name),
                 StringComparer.OrdinalIgnoreCase);
 
-            List<(string Model, int Priority)> configuredEnabled = [];
+            List<(string Provider, string Model, int Priority)> configuredEnabled = [];
             foreach ((string providerName, ModelSelectionEntry[] entries) in modelSelectionStore.ProviderModelSelections)
             {
                 if (!activeProviders.Contains(providerName))
@@ -33,27 +33,32 @@ internal static class OllamaEndpoints
                     if (!entry.Enabled)
                         continue;
 
-                    configuredEnabled.Add((entry.Match, entry.Priority));
+                    configuredEnabled.Add((providerName, entry.Match, entry.Priority));
                 }
             }
 
-            // Distinct by model id and keep deterministic ordering by priority, then name.
-            string[] models = configuredEnabled
+            // Keep provider/model pairs distinct so Copilot BYOM can show the backing
+            // provider explicitly (e.g. "deepseek-v4-pro (deepseek):latest"). This
+            // avoids ambiguity when multiple providers expose the same upstream model.
+            (string Provider, string Model, int Priority)[] models = configuredEnabled
                 .OrderBy(x => x.Priority)
+                .ThenBy(x => x.Provider, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.Model, StringComparer.OrdinalIgnoreCase)
-                .Select(x => x.Model)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .DistinctBy(x => $"{x.Provider}\u0000{x.Model}", StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
             return Results.Json(new
             {
-                models = models.Select(m =>
+                models = models.Select(entry =>
                 {
-                    (int ContextLength, int MaxOutputTokens, bool SupportsTools, bool SupportsVision, string[] Capabilities, string Family) p = modelCatalog.GetModelProfile(m);
+                    (int ContextLength, int MaxOutputTokens, bool SupportsTools, bool SupportsVision, string[] Capabilities, string Family) p = modelCatalog.GetModelProfile(entry.Model);
+                    string displayName = $"{entry.Model} ({entry.Provider}):latest";
                     return new
                     {
-                        name = m + ":latest",
-                        model = m + ":latest",
+                        name = displayName,
+                        model = displayName,
+                        provider = entry.Provider,
+                        upstream_model = entry.Model,
                         modified_at = DateTime.UtcNow.ToString("o"),
                         size = 3_826_793_677L,
                         digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -263,7 +268,7 @@ internal static class OllamaEndpoints
     /// Preserves client-supplied parameters from the Ollama "options" block.
     /// Handles message content with embedded images (converts Ollama format to OpenAI multi-part format).
     /// </summary>
-    private static string ConvertOllamaToOpenAi(string ollamaBody, string upstreamModel, bool isStream)
+    internal static string ConvertOllamaToOpenAi(string ollamaBody, string upstreamModel, bool isStream)
     {
         using JsonDocument doc = JsonDocument.Parse(ollamaBody);
         JsonElement root = doc.RootElement;
@@ -388,7 +393,7 @@ internal static class OllamaEndpoints
         return Encoding.UTF8.GetString(ms.ToArray());
     }
 
-    private static string ReplaceModelInOllamaRequestBody(string rawBody, string upstreamModel)
+    internal static string ReplaceModelInOllamaRequestBody(string rawBody, string upstreamModel)
     {
         try
         {
@@ -431,7 +436,7 @@ internal static class OllamaEndpoints
     /// Reasoning models on Ollama Cloud may return `thinking` with empty `content`.
     /// This copies the `thinking` field into `content` when content is empty or missing.
     /// </summary>
-    private static string EnsureOllamaContentFromThinking(string responseBody)
+    internal static string EnsureOllamaContentFromThinking(string responseBody)
     {
         try
         {

@@ -186,6 +186,149 @@ public class RequestTransformerTests
     }
 
     [Fact]
+    public void ApplyExecutionDefaults_StripsFunctionCallForCompatibility()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """{"messages":[],"function_call":{"name":"ping"}}""";
+
+        string result = sut.ApplyExecutionDefaults(raw, "deepseek-v4-pro", "openai");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        Assert.False(doc.RootElement.TryGetProperty("function_call", out _));
+    }
+
+    [Fact]
+    public void ApplyExecutionDefaults_StripsToolsAndToolChoiceForGroq()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """
+            {
+              "messages":[],
+              "tools":[{"type":"function","function":{"name":"ping","parameters":{"type":"object"}}}],
+              "tool_choice":"auto"
+            }
+            """;
+
+        string result = sut.ApplyExecutionDefaults(raw, "llama-3.3-70b-versatile", "groq");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        Assert.False(doc.RootElement.TryGetProperty("tools", out _));
+        Assert.False(doc.RootElement.TryGetProperty("tool_choice", out _));
+    }
+
+    [Fact]
+    public void ApplyExecutionDefaults_KeepsToolsForNvidia()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """
+            {
+              "messages":[],
+              "tools":[{"type":"function","function":{"name":"ping","parameters":{"type":"object"}}}],
+              "tool_choice":"auto"
+            }
+            """;
+
+        string result = sut.ApplyExecutionDefaults(raw, "qwen/qwen3-coder-480b-a35b-instruct", "nvidia");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        Assert.True(doc.RootElement.TryGetProperty("tools", out _));
+        Assert.True(doc.RootElement.TryGetProperty("tool_choice", out _));
+    }
+
+    [Fact]
+    public void ApplyExecutionDefaults_StripsParallelToolCallsAndResponseFormatForNvidia()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """{"messages":[],"parallel_tool_calls":true,"response_format":{"type":"json_object"}}""";
+
+        string result = sut.ApplyExecutionDefaults(raw, "qwen/qwen3-coder-480b-a35b-instruct", "nvidia");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        Assert.False(doc.RootElement.TryGetProperty("parallel_tool_calls", out _));
+        Assert.False(doc.RootElement.TryGetProperty("response_format", out _));
+    }
+
+    [Fact]
+    public void ApplyExecutionDefaults_KeepsParallelToolCallsAndResponseFormatForOpenAi()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """{"messages":[],"parallel_tool_calls":true,"response_format":{"type":"json_object"}}""";
+
+        string result = sut.ApplyExecutionDefaults(raw, "gpt-5", "openai");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        Assert.True(doc.RootElement.TryGetProperty("parallel_tool_calls", out _));
+        Assert.True(doc.RootElement.TryGetProperty("response_format", out _));
+    }
+
+    [Theory]
+    [InlineData("nvidia", true,  true,  true,  false, false)]
+    [InlineData("groq",   true,  false, false, false, false)]
+    [InlineData("openrouter", true, true, true, false, false)]
+    [InlineData("openai", false, true, true, true,  true)]
+    [InlineData("deepseek", false, true, true, true, true)]
+    [InlineData("moonshot", false, true, true, false, false)]
+    public void ApplyExecutionDefaults_SanitizesProviderSpecificFields_EvenWhenModelHasNoDefaults(
+        string provider,
+        bool expectTopK,
+        bool expectTools,
+        bool expectToolChoice,
+        bool expectParallelToolCalls,
+        bool expectResponseFormat)
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """
+            {
+              "messages":[],
+              "top_k":40,
+              "tools":[{"type":"function","function":{"name":"ping","parameters":{"type":"object"}}}],
+              "tool_choice":"auto",
+              "parallel_tool_calls":true,
+              "response_format":{"type":"json_object"},
+              "function_call":{"name":"legacy"}
+            }
+            """;
+
+        // Intentionally unknown model => no configured defaults.
+        string result = sut.ApplyExecutionDefaults(raw, "model-without-config", provider);
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        JsonElement root = doc.RootElement;
+
+        Assert.Equal(expectTopK, root.TryGetProperty("top_k", out _));
+        Assert.Equal(expectTools, root.TryGetProperty("tools", out _));
+        Assert.Equal(expectToolChoice, root.TryGetProperty("tool_choice", out _));
+        Assert.Equal(expectParallelToolCalls, root.TryGetProperty("parallel_tool_calls", out _));
+        Assert.Equal(expectResponseFormat, root.TryGetProperty("response_format", out _));
+        Assert.False(root.TryGetProperty("function_call", out _));
+    }
+
+    [Fact]
+    public void ApplyExecutionDefaults_NoDefaults_DoesNotLoseUnrelatedFields()
+    {
+        RequestTransformer sut = CreateTransformer();
+        string raw = """
+            {
+              "model":"x",
+              "messages":[{"role":"user","content":"hola"}],
+              "metadata":{"tenant":"acme","trace_id":"123"},
+              "custom_array":[1,2,3],
+              "function_call":{"name":"legacy"}
+            }
+            """;
+
+        string result = sut.ApplyExecutionDefaults(raw, "unknown-model-without-defaults", "nvidia");
+
+        using JsonDocument doc = JsonDocument.Parse(result);
+        JsonElement root = doc.RootElement;
+        Assert.True(root.TryGetProperty("metadata", out JsonElement metadata));
+        Assert.Equal("acme", metadata.GetProperty("tenant").GetString());
+        Assert.True(root.TryGetProperty("custom_array", out JsonElement arr));
+        Assert.Equal(3, arr.GetArrayLength());
+        Assert.False(root.TryGetProperty("function_call", out _));
+    }
+
+    [Fact]
     public void ApplyExecutionDefaults_DoesNotInjectReasoningEffortForUnsupportedProvider()
     {
         RequestTransformer sut = CreateTransformer();

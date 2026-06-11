@@ -93,8 +93,22 @@ internal sealed class ProviderRegistry
 
         if (!string.IsNullOrWhiteSpace(requestedModel))
         {
-            // Strip Ollama-style tag suffix (e.g., "deepseek-v4-pro:latest" → "deepseek-v4-pro")
+            // Strip Ollama-style display suffix (e.g., "deepseek-v4-pro:latest" → "deepseek-v4-pro").
+            // This intentionally removes only a trailing ":latest" so upstream ids that
+            // legitimately contain ':' (e.g. Ollama Cloud "qwen3-coder:480b") survive.
             string cleanModel = StripTagSuffix(requestedModel);
+
+            // Accept the Copilot display form emitted by /api/tags:
+            //   "model (provider):latest" → "model@provider" when that alias exists.
+            // Provider-specific resolution is attempted before the bare model so a display
+            // name never accidentally routes to a different provider's bare winner.
+            cleanModel = ExtractDisplayProviderHint(cleanModel, out string? displayProviderHint);
+            if (!string.IsNullOrWhiteSpace(displayProviderHint) &&
+                TryResolveProviderSpecificModel(cleanModel, displayProviderHint, out string displayResolved))
+            {
+                return displayResolved;
+            }
+
             if (_modelToProvider.ContainsKey(cleanModel))
                 return cleanModel;
 
@@ -141,8 +155,77 @@ internal sealed class ProviderRegistry
     /// <summary>Removes the tag portion of an Ollama model name (e.g. "model:latest" → "model").</summary>
     private static string StripTagSuffix(string model)
     {
-        int colonIdx = model.IndexOf(':');
-        return colonIdx > 0 ? model[..colonIdx] : model;
+        const string latestSuffix = ":latest";
+        string trimmed = model.Trim();
+        return trimmed.EndsWith(latestSuffix, StringComparison.OrdinalIgnoreCase)
+            ? trimmed[..^latestSuffix.Length]
+            : trimmed;
+    }
+
+    private static string ExtractDisplayProviderHint(string model, out string? providerHint)
+    {
+        providerHint = null;
+        string trimmed = model.Trim();
+        if (!trimmed.EndsWith(')'))
+        {
+            return trimmed;
+        }
+
+        int open = trimmed.LastIndexOf(" (", StringComparison.Ordinal);
+        if (open <= 0 || open >= trimmed.Length - 2)
+        {
+            return trimmed;
+        }
+
+        string candidateProvider = trimmed[(open + 2)..^1].Trim();
+        string modelPart = trimmed[..open].Trim();
+        if (string.IsNullOrWhiteSpace(candidateProvider) || string.IsNullOrWhiteSpace(modelPart))
+        {
+            return trimmed;
+        }
+
+        providerHint = candidateProvider;
+        return modelPart;
+    }
+
+    private bool TryResolveProviderSpecificModel(string model, string providerHint, out string resolved)
+    {
+        string qualified = $"{model}@{providerHint}";
+        if (_modelToProvider.TryGetValue(qualified, out ProviderInfo qualifiedProvider) &&
+            string.Equals(qualifiedProvider.Name, providerHint, StringComparison.OrdinalIgnoreCase))
+        {
+            resolved = qualified;
+            return true;
+        }
+
+        if (_modelToProvider.TryGetValue(model, out ProviderInfo exactProvider) &&
+            string.Equals(exactProvider.Name, providerHint, StringComparison.OrdinalIgnoreCase))
+        {
+            resolved = model;
+            return true;
+        }
+
+        foreach (KeyValuePair<string, ProviderInfo> kv in _modelToProvider)
+        {
+            if (!string.Equals(kv.Value.Name, providerHint, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Qualified aliases were handled above. For suffix matching, inspect only
+            // the upstream/bare key so "qwen/qwen3.5..." can match display "qwen3.5...".
+            if (kv.Key.Contains('@'))
+                continue;
+
+            int lastSlash = kv.Key.LastIndexOf('/');
+            string suffix = lastSlash > 0 ? kv.Key[(lastSlash + 1)..] : kv.Key;
+            if (string.Equals(suffix, model, StringComparison.OrdinalIgnoreCase))
+            {
+                resolved = kv.Key;
+                return true;
+            }
+        }
+
+        resolved = string.Empty;
+        return false;
     }
 
     internal string ResolveUpstreamModel(string? requestedModel)

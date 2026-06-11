@@ -38,6 +38,10 @@ public sealed class ProxyFixture : IDisposable
         {"object":"list","data":[{"id":"test-model","object":"model","created":1700000000,"owned_by":"test"}]}
         """;
 
+    private const string FakeBadRequest = """
+        {"error":{"message":"unsupported parameter combination in strict stub","type":"invalid_request_error"}}
+        """;
+
     private readonly WebApplication _stub;
     private readonly WebApplicationFactory<Program> _factory;
 
@@ -60,7 +64,34 @@ public sealed class ProxyFixture : IDisposable
         {
             using StreamReader r = new(ctx.Request.Body);
             string body = await r.ReadToEndAsync();
-            bool stream = body.Contains("\"stream\":true");
+
+            bool stream = false;
+            bool hasForbidden = false;
+            try
+            {
+                using JsonDocument d = JsonDocument.Parse(body);
+                JsonElement root = d.RootElement;
+                stream = root.TryGetProperty("stream", out JsonElement s)
+                    && s.ValueKind is JsonValueKind.True or JsonValueKind.False
+                    && s.GetBoolean();
+
+                // Strict upstream simulation:
+                // reject legacy function_call and unsupported top_k.
+                hasForbidden = root.TryGetProperty("function_call", out _)
+                    || root.TryGetProperty("top_k", out _);
+            }
+            catch
+            {
+                // If parsing fails, keep default behaviour and let tests assert proxy response.
+            }
+
+            if (hasForbidden)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync(FakeBadRequest);
+                return;
+            }
 
             ctx.Response.StatusCode = 200;
             ctx.Response.ContentType = stream ? "text/event-stream" : "application/json";
@@ -203,6 +234,24 @@ public class EndpointTests(ProxyFixture fixture)
         Assert.Equal(JsonValueKind.Array, d.RootElement.GetProperty("models").ValueKind);
     }
 
+    [Fact]
+    public async Task ApiTags_ModelNamesIncludeProviderForCopilotClarity()
+    {
+        HttpResponseMessage r = await _client.GetAsync("/api/tags");
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+
+        string body = await r.Content.ReadAsStringAsync();
+        using JsonDocument d = JsonDocument.Parse(body);
+        JsonElement models = d.RootElement.GetProperty("models");
+
+        Assert.NotEmpty(models.EnumerateArray());
+        string name = models[0].GetProperty("name").GetString()!;
+        Assert.Contains(" (", name);
+        Assert.EndsWith(":latest", name);
+        Assert.True(models[0].TryGetProperty("provider", out JsonElement provider));
+        Assert.False(string.IsNullOrWhiteSpace(provider.GetString()));
+    }
+
     // /api/show ───────────────────────────────────────────────────────────────
 
     [Fact]
@@ -241,6 +290,55 @@ public class EndpointTests(ProxyFixture fixture)
         string resp = await r.Content.ReadAsStringAsync();
         using JsonDocument d = JsonDocument.Parse(resp);
         Assert.True(d.RootElement.TryGetProperty("choices", out _));
+    }
+
+    [Fact]
+    public async Task V1Chat_WithLegacyFunctionCall_IsSanitizedAndDoesNotReturn400()
+    {
+        using StringContent body = new(
+            """{"model":"test-model","messages":[{"role":"user","content":"hi"}],"stream":false,"function_call":{"name":"legacy"}}""",
+            System.Text.Encoding.UTF8, "application/json");
+
+        HttpResponseMessage r = await _client.PostAsync("/v1/chat/completions", body);
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+    }
+
+    [Fact]
+    public async Task V1Chat_WithTopK_IsSanitizedAndDoesNotReturn400()
+    {
+        using StringContent body = new(
+            """{"model":"test-model","messages":[{"role":"user","content":"hi"}],"stream":false,"top_k":40}""",
+            System.Text.Encoding.UTF8, "application/json");
+
+        HttpResponseMessage r = await _client.PostAsync("/v1/chat/completions", body);
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+    }
+
+    [Fact]
+    public async Task V1Chat_CopilotLikePayload_NeverReturns500()
+    {
+        string content = new string('a', 16_000);
+        using StringContent body = new(
+            $$"""
+            {
+              "model":"test-model",
+              "stream":false,
+              "messages":[
+                {"role":"system","content":"You are a coding assistant"},
+                {"role":"user","content":"{{content}}"}
+              ],
+              "top_k":50,
+              "function_call":{"name":"legacy"},
+              "parallel_tool_calls":true,
+              "response_format":{"type":"json_object"}
+            }
+            """,
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        HttpResponseMessage r = await _client.PostAsync("/v1/chat/completions", body);
+        Assert.NotEqual(HttpStatusCode.InternalServerError, r.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
     }
 
     // /api/chat ───────────────────────────────────────────────────────────────

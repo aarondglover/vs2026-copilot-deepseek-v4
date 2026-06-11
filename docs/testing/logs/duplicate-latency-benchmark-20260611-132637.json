@@ -1,0 +1,122 @@
+﻿[
+    {
+        "Group":  "deepseek-v4-pro",
+        "Provider":  "ollama",
+        "Display":  "deepseek-v4-pro (ollama)",
+        "Runs":  "1429,1780,1372",
+        "Success":  3,
+        "AvgMs":  1527,
+        "MedMs":  1429,
+        "MinMs":  1372,
+        "MaxMs":  1780,
+        "Error":  ""
+    },
+    {
+        "Group":  "deepseek-v4-pro",
+        "Provider":  "deepseek",
+        "Display":  "deepseek-v4-pro (deepseek)",
+        "Runs":  "1702,1546,1644",
+        "Success":  3,
+        "AvgMs":  1631,
+        "MedMs":  1644,
+        "MinMs":  1546,
+        "MaxMs":  1702,
+        "Error":  ""
+    },
+    {
+        "Group":  "kimi-k2.6",
+        "Provider":  "moonshot",
+        "Display":  "kimi-k2.6 (moonshot)",
+        "Runs":  "2609,3067,9151",
+        "Success":  3,
+        "AvgMs":  4942,
+        "MedMs":  3067,
+        "MinMs":  2609,
+        "MaxMs":  9151,
+        "Error":  ""
+    },
+    {
+        "Group":  "kimi-k2.6",
+        "Provider":  "ollama",
+        "Display":  "kimi-k2.6 (ollama)",
+        "Runs":  "8390,6605,2839",
+        "Success":  3,
+        "AvgMs":  5945,
+        "MedMs":  6605,
+        "MinMs":  2839,
+        "MaxMs":  8390,
+        "Error":  ""
+    },
+    {
+        "Group":  "moonshotai/kimi-k2.6",
+        "Provider":  "openrouter",
+        "Display":  "moonshotai/kimi-k2.6 (openrouter)",
+        "Runs":  "2401,2046,2341",
+        "Success":  3,
+        "AvgMs":  2263,
+        "MedMs":  2341,
+        "MinMs":  2046,
+        "MaxMs":  2401,
+        "Error":  ""
+    },
+    {
+        "Group":  "moonshotai/kimi-k2.6",
+        "Provider":  "nvidia",
+        "Display":  "moonshotai/kimi-k2.6 (nvidia)",
+        "Runs":  "3402,5092,1417",
+        "Success":  3,
+        "AvgMs":  3304,
+        "MedMs":  3402,
+        "MinMs":  1417,
+        "MaxMs":  5092,
+        "Error":  ""
+    },
+    {
+        "Group":  "nvidia/nemotron-3-super-120b-a12b",
+        "Provider":  "openrouter",
+        "Display":  "nvidia/nemotron-3-super-120b-a12b (openrouter)",
+        "Runs":  "5814,862,11536",
+        "Success":  3,
+        "AvgMs":  6071,
+        "MedMs":  5814,
+        "MinMs":  862,
+        "MaxMs":  11536,
+        "Error":  ""
+    },
+    {
+        "Group":  "nvidia/nemotron-3-super-120b-a12b",
+        "Provider":  "nvidia",
+        "Display":  "nvidia/nemotron-3-super-120b-a12b (nvidia)",
+        "Runs":  "21667,615,3138",
+        "Success":  3,
+        "AvgMs":  8473,
+        "MedMs":  3138,
+        "MinMs":  615,
+        "MaxMs":  21667,
+        "Error":  ""
+    },
+    {
+        "Group":  "openai/gpt-oss-120b",
+        "Provider":  "groq",
+        "Display":  "openai/gpt-oss-120b (groq)",
+        "Runs":  "",
+        "Success":  0,
+        "AvgMs":  -1,
+        "MedMs":  -1,
+        "MinMs":  -1,
+        "MaxMs":  -1,
+        "Error":  "Error en el servidor remoto: (413) Payload Too Large."
+    },
+    {
+        "Group":  "openai/gpt-oss-120b",
+        "Provider":  "nvidia",
+        "Display":  "openai/gpt-oss-120b (nvidia)",
+        "Runs":  "440,510,571",
+        "Success":  3,
+        "AvgMs":  507,
+        "MedMs":  510,
+        "MinMs":  440,
+        "MaxMs":  571,
+        "Error":  ""
+    }
+]

@@ -144,6 +144,52 @@ public class ProviderModelHintTests
         Assert.Equal(registry.DefaultModel, resolved);
     }
 
+    [Fact]
+    public void ResolveModel_CopilotDisplayName_ReturnsProviderQualifiedAlias()
+    {
+        ProviderHttpClientFactory factory = new();
+        ProviderRegistry registry = new(factory);
+
+        registry.UpdateModelMappings(
+            new Dictionary<string, ProviderInfo>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["deepseek-v4-pro"] = MakeProvider("deepseek"),
+                ["deepseek-v4-pro@deepseek"] = MakeProvider("deepseek"),
+                ["deepseek-v4-pro@ollama"] = MakeProvider("ollama"),
+            },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["deepseek-v4-pro"] = "deepseek-v4-pro",
+                ["deepseek-v4-pro@deepseek"] = "deepseek-v4-pro",
+                ["deepseek-v4-pro@ollama"] = "deepseek-v4-pro",
+            });
+
+        string resolved = registry.ResolveModel("deepseek-v4-pro (ollama):latest");
+
+        Assert.Equal("deepseek-v4-pro@ollama", resolved);
+    }
+
+    [Fact]
+    public void ResolveModel_CopilotDisplayName_WithColonInModel_DoesNotStripModelIdColon()
+    {
+        ProviderHttpClientFactory factory = new();
+        ProviderRegistry registry = new(factory);
+
+        registry.UpdateModelMappings(
+            new Dictionary<string, ProviderInfo>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["qwen3-coder:480b@ollama"] = MakeProvider("ollama"),
+            },
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["qwen3-coder:480b@ollama"] = "qwen3-coder:480b",
+            });
+
+        string resolved = registry.ResolveModel("qwen3-coder:480b (ollama):latest");
+
+        Assert.Equal("qwen3-coder:480b@ollama", resolved);
+    }
+
     // ── ResolveCandidates with a qualified hint ──────────────────────────
 
     [Fact]

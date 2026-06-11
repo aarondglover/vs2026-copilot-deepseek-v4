@@ -19,10 +19,6 @@ internal sealed class RequestTransformer
             || exec.TopP.HasValue
             || exec.MaxTokensPreferred.HasValue
             || !string.IsNullOrWhiteSpace(exec.ReasoningEffort);
-        if (!hasAnyDefault)
-        {
-            return rawBody;
-        }
 
         // reasoning_effort is only supported by DeepSeek and OpenAI native APIs.
         // Use provider name first; fall back to model-name heuristics only when provider is unknown.
@@ -42,10 +38,21 @@ internal sealed class RequestTransformer
         bool supportsTopK = p is "nvidia" or "groq" or "openrouter";
         // If provider is unknown, assume top_k is supported (lenient fallback).
 
+        // Tool-calling support is a combination of model config + provider quirks.
+        // - supports_tools=false in config means strip all tool-related params.
+        // - Groq is intentionally conservative (tool quirks in chat-completions): strip tools/tool_choice.
+        bool supportsTools = exec.SupportsTools ?? true;
+        bool keepTools = supportsTools && p is not "groq";
+
+        // "parallel_tool_calls" and "response_format" are frequently emitted by Copilot Agent,
+        // but many non-OpenAI providers reject them with HTTP 400.
+        bool keepParallelToolCalls = p is "openai" or "deepseek";
+        bool keepResponseFormat = p is "openai" or "deepseek";
+
         // OverrideClientParams=true means the configured value is non-negotiable for this
         // model (e.g. Kimi K2.x requires temperature=1.0). In that mode we overwrite the
         // client-supplied field instead of only injecting defaults.
-        bool force = exec.OverrideClientParams;
+        bool force = hasAnyDefault && exec.OverrideClientParams;
 
         try
         {
@@ -114,6 +121,23 @@ internal sealed class RequestTransformer
                 else if (prop.NameEquals("top_k") && !supportsTopK)
                 {
                     // Skip top_k for providers that don't support it
+                    continue;
+                }
+                else if (prop.NameEquals("function_call"))
+                {
+                    // Deprecated in OpenAI-compatible APIs and often rejected upstream.
+                    continue;
+                }
+                else if ((prop.NameEquals("tools") || prop.NameEquals("tool_choice")) && !keepTools)
+                {
+                    continue;
+                }
+                else if (prop.NameEquals("parallel_tool_calls") && !keepParallelToolCalls)
+                {
+                    continue;
+                }
+                else if (prop.NameEquals("response_format") && !keepResponseFormat)
+                {
                     continue;
                 }
                 else

@@ -52,7 +52,7 @@
     {
       "match": "openai/gpt-oss-120b",
       "priority": 4,
-      "enabled": true,
+      "enabled": false,
       "execution": {
         "context_length": 131072,
         "max_output_tokens": 65536,

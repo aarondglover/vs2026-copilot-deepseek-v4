@@ -242,7 +242,7 @@ internal static class OpenAiEndpoints
     /// <see cref="ProviderInfo"/>. Returns null when the hint is absent, ambiguous,
     /// or points at a provider the registry does not know about.
     /// </summary>
-    private static ProviderInfo? ExtractProviderHint(string? requestedModel, ProviderRegistry providerRegistry)
+    internal static ProviderInfo? ExtractProviderHint(string? requestedModel, ProviderRegistry providerRegistry)
     {
         if (string.IsNullOrWhiteSpace(requestedModel))
             return null;
@@ -265,7 +265,7 @@ internal static class OpenAiEndpoints
     /// Attempts an Ollama Cloud chat completion as part of failover.
     /// Returns true if the response was written to the client; false if the candidate failed and the caller should try the next one.
     /// </summary>
-    private static async Task<bool> TryHandleOllamaCloudChatCompletion(
+    internal static async Task<bool> TryHandleOllamaCloudChatCompletion(
         HttpContext ctx,
         ProviderInfo provider,
         string openAiRequestBody,
@@ -292,7 +292,7 @@ internal static class OpenAiEndpoints
         return true;
     }
 
-    private static async Task HandleOllamaCloudChatCompletion(
+    internal static async Task HandleOllamaCloudChatCompletion(
         HttpContext ctx,
         ProviderInfo provider,
         string openAiRequestBody,
@@ -379,7 +379,7 @@ internal static class OpenAiEndpoints
         await ctx.Response.WriteAsync("data: [DONE]\n\n", clientCt);
     }
 
-    private static string BuildOllamaChatRequest(string openAiRequestBody, string model, bool isStream)
+    internal static string BuildOllamaChatRequest(string openAiRequestBody, string model, bool isStream)
     {
         using JsonDocument openAiDoc = JsonDocument.Parse(openAiRequestBody);
         JsonElement root = openAiDoc.RootElement;
@@ -434,7 +434,7 @@ internal static class OpenAiEndpoints
         return Encoding.UTF8.GetString(ms.ToArray());
     }
 
-    private static string ConvertOllamaChatToOpenAiCompletion(string ollamaResponseBody, string effectiveModel)
+    internal static string ConvertOllamaChatToOpenAiCompletion(string ollamaResponseBody, string effectiveModel)
     {
         using JsonDocument ollamaDoc = JsonDocument.Parse(ollamaResponseBody);
         JsonElement root = ollamaDoc.RootElement;
