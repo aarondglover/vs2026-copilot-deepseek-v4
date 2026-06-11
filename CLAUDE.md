@@ -1,12 +1,55 @@
-# CLAUDE.md
+# CLAUDE.md — AI Assistant Session Memory
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code, GitHub Copilot, Cursor, and other AI code assistants working with this repository.
 
-## Branching rule (hard constraint)
+## Hard Constraints (Never Violate)
 
+### Branching Rule
 - **Never** touch `main`. It is the protected release branch.
-- All work happens on `develop`. Feature branches branch off `develop` and merge back into `develop`.
-- Conventional Commits are required for every merge into `develop`.
+- **All work happens on `develop`**. Feature branches branch off `develop` and merge back into `develop`.
+- **Never** push directly to `develop` — always use a feature branch and PR.
+
+### Workflow: Feature Branches
+
+```
+main          ─── (protected, release only)
+develop       ─── merge ← feature/* branches only
+feature/xxx   ──┬─ branch off develop, PR back into develop
+```
+
+**Steps for every contribution:**
+1. `git fetch origin && git checkout develop && git pull origin develop`
+2. `git checkout -b feature/<short-description>`
+3. Make changes, commit with Conventional Commits
+4. `git push origin feature/<short-description>`
+5. Create a PR into `develop` (GitHub UI or `gh pr create`)
+6. After merge, delete the branch
+7. Never merge `main` into `develop` (main is behind)
+
+### Conventional Commits (Required)
+Every merge commit message must follow:
+```
+<type>(<scope>): <description>
+
+[optional body]
+```
+Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
+Scopes: `deepseek`, `openai`, `nvidia`, `groq`, `openrouter`, `moonshot`, `cerebras`, `ollama`, `config`, `test`, `docs`, `infra`, `script`
+
+Examples:
+```
+feat(deepseek): add deepseek-coder-6.7b-instruct model config
+fix(config): correct nvidia nemotron-3-super max_output_tokens
+test(moonshot): add override_client_params kimi-k2.5 tests
+docs(infra): update architecture diagram for ollamacloud
+```
+
+### Never Confuse Credentials
+- **Cloud provider keys** (`PROVIDER_DEEPSEEK_API_KEY`, `PROVIDER_NVIDIA_API_KEY`, etc.) go in `.env` — never in code.
+- **Proxy API key** (`PROXY_API_KEY`) is optional and unrelated to upstream keys.
+- `.env` is git-ignored. Only `.env.example` is tracked.
+
+---
 
 ## Build & Test
 
@@ -14,20 +57,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build
 dotnet build
 
-# Run all tests (329 tests, xUnit + WebApplicationFactory)
+# Run all tests (342 tests, xUnit + WebApplicationFactory)
 dotnet test
 
-# Run specific test suite
-dotnet test --filter "FullyQualifiedName~ParameterValidationTests"
-dotnet test --filter "FullyQualifiedName~EndpointTests"
-dotnet test --filter "FullyQualifiedName~ModelSelectionStoreTests"
-dotnet test --filter "FullyQualifiedName~OverrideClientParamsTests"
-dotnet test --filter "FullyQualifiedName~ProviderModelHintTests"
+# Run specific test suite by class name
+dotnet test --filter "ClassName=EndpointTests"
+dotnet test --filter "ClassName=ParameterValidationTests"
+dotnet test --filter "ClassName=ModelSelectionStoreTests"
+dotnet test --filter "ClassName=OverrideClientParamsTests"
+dotnet test --filter "ClassName=ProviderModelHintTests"
+dotnet test --filter "ClassName=RequestTransformerTests"
 
 # Run single test by method name
-dotnet test --filter TestMethodName=MySpecificTest
+dotnet test --filter "TestMethodName=MySpecificTest"
 
-# Verbose output
+# Run with detailed output
 dotnet test --verbosity detailed
 
 # Run the proxy locally (port 11434 default)
@@ -36,18 +80,22 @@ dotnet run
 
 Tests live in `tests/ProxyTests/`. The project targets **.NET 10.0** and uses `WebApplication.CreateSlimBuilder()`.
 
+---
+
 ## What This Is
 
-A high-performance ASP.NET Core **minimal API proxy** that bridges GitHub Copilot, Cursor, Continue.dev, Visual Studio BYOM, and Ollama clients to multiple AI providers through two API surfaces:
+A high-performance ASP.NET Core **minimal API proxy** that bridges GitHub Copilot, Cursor, Continue.dev, Visual Studio BYOM, and Ollama clients to **8 AI providers** through two API surfaces:
 
 | API Surface | URL Prefix | Used By |
 |---|---|---|
 | OpenAI-compatible | `/v1/*` | Copilot, Cursor, Continue.dev, OpenAI SDKs |
 | Ollama-compatible | `/api/*` | VS 2026 BYOM, native Ollama clients |
 
-**Supported providers (8):** DeepSeek, OpenAI, NVIDIA NIM, Groq, OpenRouter, Ollama Cloud, Moonshot/Kimi, Cerebras.
+**Providers (8):** DeepSeek, OpenAI, NVIDIA NIM, Groq, OpenRouter, Ollama Cloud, Moonshot/Kimi, Cerebras.
 
 **Primary use case:** GitHub Copilot inside Visual Studio 2026 producing code completions and code chat. All curated model configs are optimised for this workload.
+
+---
 
 ## Architecture
 
@@ -75,7 +123,7 @@ ProviderBenchmarkService   →  Background HostedService monitoring provider hea
 - `Endpoints/OpenAiEndpoints.cs` — Maps `/v1/models`, `/v1/chat/completions`
 - `Endpoints/OllamaEndpoints.cs` — Maps `/api/version`, `/api/tags`, `/api/show`, `/api/chat`
 - `Endpoints/HealthEndpoints.cs` — Maps `/health`
-- `Middleware/` — Empty (auth middleware lives in `Infrastructure/ProxyAuthenticationMiddleware.cs`)
+- Middleware lives in `Infrastructure/ProxyAuthenticationMiddleware.cs`
 
 ### Request Lifecycle
 
@@ -87,9 +135,11 @@ ProviderBenchmarkService   →  Background HostedService monitoring provider hea
 6. **Response converted** → if Ollama endpoint, `OllamaResponseBuilder` maps OpenAI → Ollama format
 7. **Failover** → non-streaming requests retry next candidate on failure; streaming does NOT failover (headers already sent)
 
-### Model Configuration
+---
 
-Model metadata lives in `config/model-selection/{provider}.json` (8 files: `deepseek`, `openai`, `nvidia`, `groq`, `openrouter`, `moonshot`, `cerebras`, `ollamacloud`). Each file maps model names to execution defaults:
+## Model Configuration
+
+Model metadata lives in `config/model-selection/{provider}.json` (8 files). Each file maps model names to execution defaults:
 
 ```json
 {
@@ -115,77 +165,49 @@ Model metadata lives in `config/model-selection/{provider}.json` (8 files: `deep
 - **Adding a new model:** edit the JSON for its provider + restart (no hot reload)
 - **Adding a new provider:** create JSON + add provider to `ProviderRegistry.DiscoverProviders` + add HttpClient factory in `ProviderHttpClientFactory.cs`
 - Models with `"enabled": false` are excluded from `/v1/models` and `/api/tags`
-- The `execution.override_client_params` flag (bool, default `false`) controls force-mode: when `true`, the proxy overwrites client-supplied `temperature` / `top_p` / `max_tokens` / `reasoning_effort` with the configured value (used by Moonshot Kimi K2.x which mandates `temperature=1.0`)
+- The `execution.override_client_params` flag (bool, default `false`) controls force-mode: when `true`, the proxy overwrites client-supplied `temperature` / `top_p` / `max_tokens` / `reasoning_effort` with the configured value
 
-### Curated model cap
+### Current Enabled Models (2026-06-11)
 
-Each provider exposes **5 enabled models maximum** (DeepSeek and Cerebras expose 2, Ollama exposes 1). Curated picks prioritise coding strength for GitHub Copilot in Visual Studio 2026:
+Each provider exposes 5 enabled models maximum (DeepSeek exposes 2 enabled + 1 disabled, Cerebras exposes 2):
 
-| Provider | Top picks |
-|----------|-----------|
-| DeepSeek | deepseek-v4-pro, deepseek-v4-flash, deepseek-coder-6.7b-instruct |
-| OpenAI | gpt-5, gpt-5-mini, gpt-4.1, gpt-4o, gpt-oss-120b |
-| NVIDIA NIM | qwen3-coder-480b, moonshotai/kimi-k2.6, nemotron-3-super-120b, openai/gpt-oss-120b, qwen3.5-397b |
-| Groq | llama-3.3-70b-versatile, qwen3-32b, llama-4-scout-17b, gpt-oss-120b, gpt-oss-20b |
-| OpenRouter | qwen3-coder, nemotron-3-super, nemotron-3-ultra, kimi-k2.6, deepseek-v4-pro |
-| Moonshot | kimi-k2.6, kimi-k2.5, moonshot-v1-{128k,auto,32k} |
-| Cerebras | zai-glm-4.7, gpt-oss-120b |
-| Ollama Cloud | qwen3-coder:480b, qwen3-coder-next, devstral-2:123b, kimi-k2.6, deepseek-v4-pro |
+| Provider | Enabled Models |
+|---|---|
+| **DeepSeek** (2 enabled) | `deepseek-v4-pro`, `deepseek-coder-6.7b-instruct` |
+| **OpenAI** (5) | `gpt-5`, `gpt-5-mini`, `gpt-4.1`, `gpt-4o`, `gpt-oss-120b` |
+| **NVIDIA NIM** (5) | `qwen/qwen3-coder-480b-a35b-instruct`, `moonshotai/kimi-k2.6`, `nvidia/nemotron-3-super-120b-a12b`, `openai/gpt-oss-120b`, `qwen/qwen3.5-397b-a17b` |
+| **Groq** (5) | `llama-3.3-70b-versatile`, `qwen/qwen3-32b`, `meta-llama/llama-4-scout-17b-16e-instruct`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b` |
+| **OpenRouter** (5) | `qwen/qwen3-coder`, `nvidia/nemotron-3-super-120b-a12b`, `nvidia/nemotron-3-ultra-550b-a55b`, `moonshotai/kimi-k2.6`, `deepseek/deepseek-v4-pro` |
+| **Moonshot/Kimi** (5) | `kimi-k2.6`, `kimi-k2.5`, `moonshot-v1-128k`, `moonshot-v1-auto`, `moonshot-v1-32k` |
+| **Cerebras** (2) | `zai-glm-4.7`, `gpt-oss-120b` |
+| **Ollama Cloud** (5) | `qwen3-coder:480b`, `qwen3-coder-next`, `devstral-2:123b`, `kimi-k2.6`, `deepseek-v4-pro` |
+| **Local Ollama** (1) | `mistral` (bare substring match) |
 
-### 3-level `provider/model` hint resolution
+### Parameter Filtering Rules
 
-`ProviderRegistry.ResolveModel(requestedModel)` tries three strategies in order to handle the OpenAI-style `provider/model` request form:
-
-1. **Verbatim** — the full id exists in the registry (e.g. `openai/gpt-oss-120b` is a registered key).
-2. **Strip prefix** — strip the provider prefix and look up the bare name (e.g. `groq/qwen3-32b` → `qwen3-32b`).
-3. **Suffix match within hinted provider** — find any upstream id owned by the hinted provider whose suffix equals the bare name (e.g. `nvidia/qwen3.5-397b-a17b` matches NVIDIA's `qwen/qwen3.5-397b-a17b` upstream id). Must NOT cross providers — a `groq/` hint never resolves to an NVIDIA-owned id.
-
-The corresponding test file is `tests/ProxyTests/ProviderModelHintTests.cs`.
-
-### Parameter Filtering Rules (RequestTransformer)
-
-`RequestTransformer.ApplyExecutionDefaults()` strips unsupported parameters per provider before forwarding, and injects defaults for missing fields:
+`RequestTransformer.ApplyExecutionDefaults()` strips unsupported parameters per provider:
 
 - `top_k` → removed for DeepSeek, OpenAI, Moonshot/Kimi; kept for NVIDIA, Groq, OpenRouter
 - `reasoning_effort` → only DeepSeek and OpenAI o-series; removed for NVIDIA, Groq, Moonshot/Kimi
-- `top_p` → omitted when `reasoning_effort` is set (DeepSeek API rule: "don't combine sampling parameters with reasoning")
-- `tools`/`tool_choice` → kept for DeepSeek, OpenAI, NVIDIA, OpenRouter, Moonshot, Cerebras; **removed for Groq** (Groq's chat API has tool quirks)
+- `top_p` → omitted when `reasoning_effort` is set (DeepSeek API rule)
+- `tools`/`tool_choice` → kept for most; removed for Groq
 - `function_call` → removed for all (deprecated)
-- `override_client_params=true` → force-overwrite the client value with the configured one for `temperature`, `top_p`, `max_tokens`, `reasoning_effort`
+- `override_client_params=true` → force-overwrite client values with configured ones
 
-### Moonshot Kimi K2.x quirk
+### Force-Mode (override_client_params)
 
-The Kimi K2.5 and K2.6 models reject any request with `temperature ≠ 1.0`. The proxy handles this by setting `"override_client_params": true` in `moonshot.json` for those two entries. `RequestTransformer` then overwrites the client's `temperature` value (and `top_p`, `max_tokens`, `reasoning_effort` if they have configured values) before forwarding.
+Currently active for:
+- Moonshot `kimi-k2.6` and `kimi-k2.5` — temperature=1.0 forced (Kimi K2.x rejects anything else)
+- Ollama Cloud `kimi-k2.6` — inherits the same force-mode rule
 
-The `OverrideClientParamsTests.cs` test file exercises this end-to-end: `ApplyExecutionDefaults_OverrideClientParamsTrue_OverwritesClientTemperature` sends `{"temperature": 0.7}` and verifies the upstream body has `temperature: 1.0`.
-
-### Configuration Sources (priority order)
-
-1. System environment variables
-2. `.env` file (loaded by `Program.cs` if present)
-3. `appsettings.json`
-4. Hardcoded defaults (port 11434, model `deepseek-v4-pro`)
-
-### Testing Architecture
-
-Tests use `WebApplicationFactory<Program>` with an **in-process stub provider** (no real API calls). The stub simulates OpenAI-compatible endpoints on a random port. Key patterns:
-
-- `ProxyFixture` provides `HttpClient` wired to the in-process proxy
-- Tests that mutate process env vars MUST share the `[Collection("Proxy")]` fixture (no parallel races)
-- **329 tests** across 14 test files covering endpoints, parameter validation, model selection, transformers, auth, reasoning cache, Ollama response building, JSON defaults, HTTP client factory, provider registry, **override_client_params semantics**, and **3-level `provider/model` hint resolution**
-
-## Credential Separation
-
-Per `.github/copilot-instructions.md`: **Never confuse Ollama Cloud API keys with local proxy API keys.** Cloud provider keys are managed via `.env` variables (`PROVIDER_OLLAMACLOUD_API_KEY`, `PROVIDER_DEEPSEEK_API_KEY`, `PROVIDER_MOONSHOT_API_KEY`, `PROVIDER_CEREBRAS_API_KEY`, etc.). The optional `PROXY_API_KEY` controls access to the proxy itself and is unrelated.
-
-`.env` is in `.gitignore` and is **never** committed. Only `.env.example` is tracked.
+---
 
 ## Key Files Reference
 
 | File | Purpose |
 |---|---|
 | `Program.cs` | Entry point, DI registration, endpoint mapping, env-var discovery |
-| `Services/ProviderRegistry.cs` | Model → provider resolution; 3-level `provider/model` hint resolver; `ResolveCandidates` for failover lists |
+| `Services/ProviderRegistry.cs` | Model → provider resolution; 3-level `provider/model` hint resolver; `ResolveCandidates` |
 | `Services/RequestTransformer.cs` | Parameter filtering + default injection; `override_client_params` force-mode |
 | `Services/ModelCatalogService.cs` | Live model catalog from all providers; cross-provider collision resolution |
 | `Services/ModelSelectionStore.cs` | JSON config loader for model defaults; parses `override_client_params` |

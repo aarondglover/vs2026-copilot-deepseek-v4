@@ -27,8 +27,8 @@ The proxy includes a comprehensive test suite covering every component of the ro
 
 ### Test Statistics
 
-- **Total Tests:** 421
-- **Status:** ✅ All passing (421/421)
+- **Total Tests:** 342
+- **Status:** ✅ All passing (342/342)
 - **Framework:** xUnit 2.9.3 + `Microsoft.AspNetCore.Mvc.Testing`
 - **Coverage Areas:**
   - ✅ Endpoint routing (OpenAI `/v1/*` & Ollama `/api/*` formats)
@@ -45,8 +45,8 @@ The proxy includes a comprehensive test suite covering every component of the ro
   - ✅ Provider HTTP client factory
   - ✅ Model selection store
   - ✅ Reasoning cache service
-  - ✅ **`override_client_params` force-mode semantics** (new)
-  - ✅ **3-level `provider/model` hint resolution** (new)
+  - ✅ `override_client_params` force-mode semantics
+  - ✅ 3-level `provider/model` hint resolution
 
 ### Test Technologies
 
@@ -76,10 +76,10 @@ dotnet test
 dotnet test --verbosity quiet
 
 # Run specific test suite
-dotnet test --filter "FullyQualifiedName~ParameterValidationTests"
-dotnet test --filter "FullyQualifiedName~OverrideClientParamsTests"
-dotnet test --filter "FullyQualifiedName~ProviderModelHintTests"
-dotnet test --filter "FullyQualifiedName~ReasoningCacheServiceTests"
+dotnet test --filter "ClassName=ParameterValidationTests"
+dotnet test --filter "ClassName=OverrideClientParamsTests"
+dotnet test --filter "ClassName=ProviderModelHintTests"
+dotnet test --filter "ClassName=ReasoningCacheServiceTests"
 
 # Run with coverage report
 dotnet test /p:CollectCoverage=true
@@ -151,8 +151,7 @@ Validates that `RequestTransformer.ApplyExecutionDefaults()` correctly injects d
 
 **DeepSeek Models:**
 - ✅ `deepseek-v4-pro` — reasoning_effort injected, top_p omitted (native reasoner)
-- ✅ `deepseek-v4-flash` — reasoning_effort injected, top_p omitted
-- ✅ `deepseek-coder-6.7b-instruct` — disabled in config, not tested as a "preferred" model
+- ✅ `deepseek-coder-6.7b-instruct` — reasoning_effort injected, top_p omitted
 
 **NVIDIA NIM Models (5 curated for coding + Copilot):**
 - ✅ qwen/qwen3-coder-480b-a35b-instruct
@@ -208,8 +207,8 @@ The proxy ships with the following test files in `tests/ProxyTests/`:
 | `EndpointTests.cs` | ~20 | End-to-end HTTP behaviour with `WebApplicationFactory` + stub provider |
 | `ParameterValidationTests.cs` | ~50 | Per-model parameter injection (temperature, top_p, max_tokens, reasoning_effort) |
 | `RequestTransformerTests.cs` | ~25 | Filter / inject defaults, streaming SSE → NDJSON, assistant-message cleanup |
-| **`OverrideClientParamsTests.cs`** | **10** | **`override_client_params=true` force-mode overrides client values; default mode preserves them; JSON parsing of true/false/absent** |
-| **`ProviderModelHintTests.cs`** | **7** | **3-level `provider/model` hint resolution in `ProviderRegistry.ResolveModel` + `ResolveCandidates` for `model@provider`** |
+| `OverrideClientParamsTests.cs` | 10 | `override_client_params=true` force-mode overrides client values; default mode preserves them; JSON parsing |
+| `ProviderModelHintTests.cs` | 7 | 3-level `provider/model` hint resolution + `ResolveCandidates` for `model@provider` |
 | `ProviderRegistryTests.cs` | ~15 | Provider discovery, `ResolveProvider`, `ResolveCandidates`, mapping updates |
 | `ModelCatalogServiceTests.cs` | ~25 | Cross-provider collisions, priority tie-breaks, JSON config integration |
 | `ModelSelectionStoreTests.cs` | ~50 | `GetExecutionConfigForModel`, `IsPreferredModel`, priority resolution per provider |
@@ -219,7 +218,7 @@ The proxy ships with the following test files in `tests/ProxyTests/`:
 | `ProviderHttpClientFactoryTests.cs` | ~8 | Per-provider `HttpClient` config (auth headers, base URL, fallbacks) |
 | `ProxyAuthenticationMiddlewareTests.cs` | ~8 | `PROXY_API_KEY` bearer-token middleware |
 | `JsonDefaultsTests.cs` | ~9 | `System.Text.Json` snake_case + null handling |
-| **Total** | **329** | |
+| **Total** | **342** | |
 
 ---
 
@@ -271,7 +270,7 @@ The 25 tests in this file cover: `ReplaceModelInRequestBody`, `ModifyRequest` (a
 
 ### Override Client Params Tests
 
-**File:** `tests/ProxyTests/OverrideClientParamsTests.cs` (new)
+**File:** `tests/ProxyTests/OverrideClientParamsTests.cs`
 
 10 tests covering the `override_client_params` flag on `ModelExecutionConfig`. When a model has this flag set to `true`, the proxy **overwrites** client-supplied `temperature` / `top_p` / `max_tokens` / `reasoning_effort` with the configured value (instead of only injecting defaults for missing fields). The main use case is **Moonshot Kimi K2.x which mandates `temperature=1.0`** — the proxy must force that value even if the user supplied `0.7`.
 
@@ -293,7 +292,7 @@ The 25 tests in this file cover: `ReplaceModelInRequestBody`, `ModifyRequest` (a
 
 ### Provider Model Hint Tests
 
-**File:** `tests/ProxyTests/ProviderModelHintTests.cs` (new)
+**File:** `tests/ProxyTests/ProviderModelHintTests.cs`
 
 7 tests covering the 3-level `provider/model` hint resolution in `ProviderRegistry.ResolveModel`. The OpenAI-style form `"nvidia/qwen3-coder-480b-a35b-instruct"` is accepted, but NVIDIA exposes many models with upstream ids that include a slash prefix (e.g. `qwen/qwen3.5-397b-a17b`), so the resolver tries three strategies in order.
 

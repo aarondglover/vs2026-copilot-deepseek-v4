@@ -12,7 +12,7 @@ Optimized documentation for GitHub Copilot, Claude, and other AI code assistants
 - **Override Mode:** `override_client_params: true` force-overrides client values for models with hard requirements (e.g. Moonshot Kimi K2.x mandates `temperature=1.0`)
 - **Zero-Copy Streaming:** SSE pass-through with minimal allocations
 - **Reasoning Cache:** DeepSeek multi-turn thinking content reuse
-- **Production Ready:** HTTP/2, connection pooling, **329-test** suite
+- **Production Ready:** HTTP/2, connection pooling, **342-test** suite
 
 **Primary use case:** GitHub Copilot inside Visual Studio 2026 producing code completions and code chat. All curated models are selected for coding strength.
 
@@ -75,13 +75,13 @@ POST /api/chat                     → Chat completion (Ollama format; NDJSON st
 
 ---
 
-## Curated Model Roster (2026-06-10)
+## Curated Model Roster (2026-06-11)
 
 Each provider exposes **5 enabled models maximum** (a few smaller providers expose 2). The curation is optimised for **GitHub Copilot inside Visual Studio 2026**: coding-first picks with deep context windows, strong tool support, and 1M-token reasoning where available.
 
 | Provider | Top picks (5 max) | Notes |
 |----------|-------------------|-------|
-| **DeepSeek** | `deepseek-v4-pro`, `deepseek-v4-flash`, `deepseek-coder-6.7b-instruct` | 2 enabled, 1 disabled (coder kept for code-specific tasks) |
+| **DeepSeek** | `deepseek-v4-pro`, `deepseek-coder-6.7b-instruct` | 2 enabled; v4-flash disabled, coder enabled for code-specific tasks |
 | **OpenAI** | `gpt-5`, `gpt-5-mini`, `gpt-4.1`, `gpt-4o`, `gpt-oss-120b` | 5 enabled |
 | **NVIDIA NIM** | `qwen/qwen3-coder-480b-a35b-instruct`, `moonshotai/kimi-k2.6`, `nvidia/nemotron-3-super-120b-a12b`, `openai/gpt-oss-120b`, `qwen/qwen3.5-397b-a17b` | 5 enabled, all top coding picks; 1M context on the 480B Qwen coder and Nemotron super |
 | **Groq** | `llama-3.3-70b-versatile`, `qwen/qwen3-32b`, `meta-llama/llama-4-scout-17b-16e-instruct`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b` | 5 enabled; Groq's strength is inference speed for chat |
@@ -89,6 +89,7 @@ Each provider exposes **5 enabled models maximum** (a few smaller providers expo
 | **Moonshot/Kimi** | `kimi-k2.6`, `kimi-k2.5`, `moonshot-v1-128k`, `moonshot-v1-auto`, `moonshot-v1-32k` | 5 enabled; **kimi-k2.6 and kimi-k2.5 have `override_client_params=true` (forces `temperature=1.0`)** |
 | **Cerebras** | `zai-glm-4.7`, `gpt-oss-120b` | 2 enabled (Cerebras has a small curated set) |
 | **Ollama Cloud** | `qwen3-coder:480b`, `qwen3-coder-next`, `devstral-2:123b`, `kimi-k2.6`, `deepseek-v4-pro` | 5 enabled; `kimi-k2.6` inherits Moonshot's force-mode |
+| **Local Ollama** | `mistral` | 1 enabled (bare substring match for local inference) |
 
 ---
 
@@ -116,7 +117,7 @@ Each provider exposes **5 enabled models maximum** (a few smaller providers expo
 
 2. **Update provider routing:** If new provider, edit `ProviderRegistry.DiscoverProviders()` and add the env-var key in `Program.cs`.
 3. **Restart proxy** (configuration is not reloaded on-the-fly)
-4. **Test:** `dotnet test --filter "FullyQualifiedName~ModelSelectionStoreTests"`
+4. **Test:** `dotnet test --filter "ClassName=ModelSelectionStoreTests"`
 
 ### Fixing Parameter Filtering for a Provider
 
@@ -125,7 +126,7 @@ Each provider exposes **5 enabled models maximum** (a few smaller providers expo
 3. **Find provider switch:** Look for `p is "provider_name"` checks in the `supportsReasoningEffort` / `supportsTopK` ternaries
 4. **Add/remove parameter:** Modify the JSON body rewrite
 5. **Add unit test:** `ParameterValidationTests.cs` with a new `[InlineData]` theory case
-6. **Run tests:** `dotnet test --filter "FullyQualifiedName~ParameterValidationTests"`
+6. **Run tests:** `dotnet test --filter "ClassName=ParameterValidationTests"`
 
 ### Debugging a Streaming Response Issue
 
@@ -151,7 +152,7 @@ Each provider exposes **5 enabled models maximum** (a few smaller providers expo
    - **Model selection?** → `ModelSelectionStoreTests.cs` / `ModelCatalogServiceTests.cs`
    - **HTTP behaviour?** → `EndpointTests.cs`
    - **Transform logic?** → `RequestTransformerTests.cs`
-4. **Run single test:** `dotnet test --filter MyTestName=*`
+4. **Run single test:** `dotnet test --filter TestMethodName=*`
 5. **Debug:** Set a breakpoint in the test method or the service it calls
 
 ---
@@ -175,7 +176,7 @@ Each provider exposes **5 enabled models maximum** (a few smaller providers expo
 
 ```
 config/model-selection/
-├── deepseek.json       # v4-pro, v4-flash, coder
+├── deepseek.json       # v4-pro (enabled), coder-6.7b (enabled), v4-flash (disabled)
 ├── openai.json         # gpt-5, gpt-5-mini, gpt-4.1, gpt-4o, gpt-oss-120b
 ├── nvidia.json         # qwen3-coder-480b, kimi-k2.6, nemotron-3-super, gpt-oss-120b, qwen3.5-397b
 ├── groq.json           # llama-3.3-70b, qwen3-32b, llama-4-scout, gpt-oss-120b, gpt-oss-20b
@@ -185,7 +186,7 @@ config/model-selection/
 └── ollamacloud.json    # qwen3-coder:480b, qwen3-coder-next, devstral-2:123b, kimi-k2.6, deepseek-v4-pro
 ```
 
-> `ollamacloud.json` and `ollama.json` both declare `"provider": "ollama"`, so the loader merges them under the `"ollama"` key. The local-ollama `ollama.json` currently exposes only a few matches (most disabled in the May 2026 curation); Ollama Cloud is the production-ready path.
+> `ollamacloud.json` and `ollama.json` both declare `"provider": "ollama"`, so the loader merges them under the `"ollama"` key. The local-ollama `ollama.json` currently exposes only `mistral` as enabled (bare substring match); Ollama Cloud is the production-ready path.
 
 Each file contains model execution defaults (temperature, max_tokens, reasoning_effort, timeout_seconds, **override_client_params**).
 
@@ -373,7 +374,7 @@ Set a breakpoint in `RequestTransformer.ApplyExecutionDefaults()` and examine th
 - **Model metadata:** Loaded once on startup, cached in RAM
 - **JSON parsing:** `System.Text.Json` source-generated (no reflection)
 - **Typical latency:** <10ms proxy overhead
-- **Test count:** 329 tests, all green
+- **Test count:** 342 tests, all green
 
 ---
 

@@ -45,7 +45,7 @@ The proxy is a high-performance ASP.NET Core minimal API application that bridge
 - **Web Framework:** ASP.NET Core Minimal APIs (`WebApplication.CreateSlimBuilder`)
 - **Serialization:** System.Text.Json
 - **HTTP Client:** `SocketsHttpHandler` with 256 connections/server + HTTP/2 multiplexing
-- **Testing:** xUnit 2.9.3 + `Microsoft.AspNetCore.Mvc.Testing` — **329 tests** in 14 files
+- **Testing:** xUnit 2.9.3 + `Microsoft.AspNetCore.Mvc.Testing` — **342 tests** in 14 files
 
 ---
 
@@ -146,7 +146,7 @@ public void Reload();  // not exposed — restart only
 
 ```
 config/model-selection/
-├── deepseek.json      # 2 enabled (v4-pro, v4-flash; +coder-6.7b disabled)
+├── deepseek.json      # 2 enabled (v4-pro, coder-6.7b; v4-flash disabled)
 ├── openai.json        # 5 enabled
 ├── nvidia.json        # 5 enabled
 ├── groq.json          # 5 enabled
@@ -157,7 +157,7 @@ config/model-selection/
 └── ollama.json        # 1 enabled (local Ollama; same provider key as ollamacloud)
 ```
 
-> `ollamacloud.json` and `ollama.json` both declare `"provider": "ollama"`, so the loader merges them under the `"ollama"` key.
+> `ollamacloud.json` and `ollama.json` both declare `"provider": "ollama"`, so the loader merges them under the `"ollama"` key. The local-ollama `ollama.json` currently exposes only `mistral` as enabled (bare substring match).
 
 #### 4. `ModelCatalogService`
 

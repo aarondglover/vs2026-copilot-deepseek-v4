@@ -2,7 +2,7 @@
 
 > The fastest way to run DeepSeek, OpenAI, NVIDIA, Groq, OpenRouter, Moonshot/Kimi, Cerebras, and Ollama models in GitHub Copilot, VS BYOM, and Ollama clients — **curated for coding inside Visual Studio 2026**.
 
-**As of June 2026** — Tested with Visual Studio 2026 Insider Edition · .NET 10 · 329 tests passing
+**As of June 2026** — Tested with Visual Studio 2026 Insider Edition · .NET 10 · 342 tests passing
 
 A high-performance, ultra-low-overhead HTTP proxy that connects GitHub Copilot and Ollama clients to **DeepSeek, OpenAI, NVIDIA, Groq, OpenRouter, Moonshot/Kimi, Cerebras, and Ollama Cloud** APIs. Built with .NET 10 and ASP.NET Core minimal APIs for maximum throughput and minimal allocations.
 
@@ -12,7 +12,7 @@ A high-performance, ultra-low-overhead HTTP proxy that connects GitHub Copilot a
 | **Models** | Auto-discovered from each provider; curated to **5 enabled per provider** for coding |
 | **Default Port** | `11434` |
 | **Framework** | .NET 10 |
-| **Tests** | 329 passing ✅ |
+| **Tests** | 342 passing ✅ |
 | **Deploy** | Docker / bare metal |
 
 ## Key Features
@@ -160,7 +160,7 @@ Top picks for coding in VS 2026:
 - **Streaming:** Zero-copy pass-through (minimal memory overhead)
 - **Model metadata:** Loaded once on startup, cached in RAM
 - **Typical latency:** <10ms proxy overhead
-- **Test coverage:** 329 tests covering endpoints, parameters, model selection, transformations, force-mode, hint resolution
+- **Test coverage:** 342 tests covering endpoints, parameters, model selection, transformations, force-mode, hint resolution
 
 ## Testing
 
@@ -203,14 +203,15 @@ Each provider exposes a curated set of **5 enabled models** (max), prioritised f
 
 | Provider | # enabled | Top picks | Notes |
 |----------|----------:|-----------|-------|
-| **DeepSeek** | 2 | deepseek-v4-pro, deepseek-v4-flash | 1M context, native reasoning |
+| **DeepSeek** | 2 | deepseek-v4-pro, deepseek-coder-6.7b-instruct | v4-flash disabled; coder enabled for code-specific tasks |
 | **OpenAI** | 5 | gpt-5, gpt-5-mini, gpt-4.1, gpt-4o, gpt-oss-120b | o-series support |
 | **NVIDIA NIM** | 5 | qwen3-coder-480b, kimi-k2.6, nemotron-3-super, gpt-oss-120b, qwen3.5-397b | 1M context, all top coding picks |
 | **Groq** | 5 | llama-3.3-70b-versatile, qwen3-32b, llama-4-scout, gpt-oss-120b, gpt-oss-20b | Speed-optimised inference |
 | **OpenRouter** | 5 | qwen3-coder, nemotron-3-super, nemotron-3-ultra, kimi-k2.6, deepseek-v4-pro | Multi-backend passthrough |
 | **Moonshot/Kimi** | 5 | kimi-k2.6, kimi-k2.5, moonshot-v1-{128k,auto,32k} | Kimi K2.x forces `temperature=1.0` |
 | **Cerebras** | 2 | zai-glm-4.7, gpt-oss-120b | Small curated set |
-| **Ollama Cloud** | 5 | qwen3-coder:480b, qwen3-coder-next, devstral-2:123b, kimi-k2.6, deepseek-v4-pro | Quantised open models |
+| **Ollama Cloud** | 5 | qwen3-coder:480b, qwen3-coder-next, devstral-2:123b, kimi-k2.6, deepseek-v4-pro | kimi-k2.6 inherits Moonshot force-mode |
+| **Local Ollama** | 1 | mistral | Bare substring match for local inference |
 
 **[→ Configuration Guide](docs/CONFIGURATION.md#context-window-specifications)**
 
