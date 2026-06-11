@@ -241,6 +241,13 @@ curl http://localhost:11434/api/version
 
 List available models in Ollama format.
 
+The proxy returns a **human-friendly display name** so Visual Studio BYOM users can quickly identify provider ownership:
+
+- `name`: `PROVIDER - model:latest` (provider in uppercase)
+- `model`: routable model id with `:latest` suffix
+
+This reduces ambiguity when the same model family exists across multiple providers.
+
 **Request:**
 ```bash
 curl http://localhost:11434/api/tags
@@ -251,8 +258,15 @@ curl http://localhost:11434/api/tags
 {
   "models": [
     {
-      "name": "deepseek-v4-pro:latest",
-      "model": "deepseek-v4-pro",
+      "name": "DEEPSEEK - deepseek-v4-pro:latest",
+      "model": "deepseek-v4-pro:latest",
+      "modified_at": "2026-06-04T10:30:00Z",
+      "size": 10737418240,
+      "digest": "abc123def456"
+    },
+    {
+      "name": "MOONSHOT - kimi-k2.6:latest",
+      "model": "kimi-k2.6:latest",
       "modified_at": "2026-06-04T10:30:00Z",
       "size": 10737418240,
       "digest": "abc123def456"
@@ -261,6 +275,10 @@ curl http://localhost:11434/api/tags
   ]
 }
 ```
+
+**Notes:**
+- Ordering is deterministic: provider → configured priority → model name.
+- Display aliases are normalized to reduce duplicates inside the same provider slot (for example, prefixed vs non-prefixed upstream aliases).
 
 ---
 

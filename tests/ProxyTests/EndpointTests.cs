@@ -203,6 +203,66 @@ public class EndpointTests(ProxyFixture fixture)
         Assert.Equal(JsonValueKind.Array, d.RootElement.GetProperty("models").ValueKind);
     }
 
+    [Fact]
+    public async Task ApiTags_ModelName_UsesUppercaseProviderPrefixAndLatestSuffix()
+    {
+        HttpResponseMessage r = await _client.GetAsync("/api/tags");
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+
+        string body = await r.Content.ReadAsStringAsync();
+        using JsonDocument d = JsonDocument.Parse(body);
+        JsonElement[] models = d.RootElement.GetProperty("models").EnumerateArray().ToArray();
+        Assert.NotEmpty(models);
+
+        foreach (JsonElement m in models)
+        {
+            string name = m.GetProperty("name").GetString()!;
+            string model = m.GetProperty("model").GetString()!;
+
+            Assert.Contains(" - ", name);
+            Assert.EndsWith(":latest", name, StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith(":latest", model, StringComparison.OrdinalIgnoreCase);
+
+            int sep = name.IndexOf(" - ", StringComparison.Ordinal);
+            string providerPrefix = name[..sep];
+            Assert.Equal(providerPrefix.ToUpperInvariant(), providerPrefix);
+        }
+    }
+
+    [Fact]
+    public async Task ApiTags_DisplayModel_MatchesRoutableModelBaseAfterNormalization()
+    {
+        HttpResponseMessage r = await _client.GetAsync("/api/tags");
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+
+        string body = await r.Content.ReadAsStringAsync();
+        using JsonDocument d = JsonDocument.Parse(body);
+
+        foreach (JsonElement m in d.RootElement.GetProperty("models").EnumerateArray())
+        {
+            string name = m.GetProperty("name").GetString()!;
+            string model = m.GetProperty("model").GetString()!;
+
+            int sep = name.IndexOf(" - ", StringComparison.Ordinal);
+            Assert.True(sep > 0, $"Expected provider prefix in name, got: {name}");
+
+            string displayWithTag = name[(sep + 3)..];
+            string displayModel = displayWithTag.EndsWith(":latest", StringComparison.OrdinalIgnoreCase)
+                ? displayWithTag[..^":latest".Length]
+                : displayWithTag;
+
+            string modelBase = model.EndsWith(":latest", StringComparison.OrdinalIgnoreCase)
+                ? model[..^":latest".Length]
+                : model;
+
+            int slash = modelBase.IndexOf('/');
+            if (slash > 0 && slash < modelBase.Length - 1)
+                modelBase = modelBase[(slash + 1)..];
+
+            Assert.Equal(modelBase, displayModel, ignoreCase: true);
+        }
+    }
+
     // /api/show ───────────────────────────────────────────────────────────────
 
     [Fact]

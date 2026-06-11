@@ -120,6 +120,8 @@ Tests the proxy's HTTP endpoints against stub provider responses. Uses `WebAppli
 **2. Ollama-Compatible Endpoints**
 - `GET /api/version` — Proxy version
 - `GET /api/tags` — List models in Ollama format
+  - validates `name` display format: `PROVIDER - model:latest`
+  - validates `name` display model matches normalized `model` routing id
 - `GET /api/show?model=...` — Model details (GET)
 - `POST /api/show` — Model details (POST)
 - `POST /api/chat` — Chat completion (Ollama NDJSON streaming)
@@ -135,6 +137,7 @@ Tests the proxy's HTTP endpoints against stub provider responses. Uses `WebAppli
 - ✅ JSON structure is valid
 - ✅ Streaming responses use proper delimiters
 - ✅ `/v1/models` only returns ids the routing layer can actually accept (bare or `upstream@provider` — never raw `provider/model`)
+- ✅ `/api/tags` uses uppercase provider-prefixed display names (`PROVIDER - model:latest`) to reduce model ambiguity in VS BYOM
 
 ---
 
