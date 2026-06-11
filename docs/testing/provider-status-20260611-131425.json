@@ -1,0 +1,472 @@
+﻿{
+    "generated_at_utc":  "2026-06-11T16:14:25.5213286Z",
+    "providers":  [
+                      {
+                          "provider":  "deepseek",
+                          "status":  "missing_key",
+                          "models":  0,
+                          "configured":  2,
+                          "chat_ok":  0,
+                          "chat_total":  2,
+                          "latency_avg_ms":  0,
+                          "error":  "missing API key"
+                      },
+                      {
+                          "provider":  "openai",
+                          "status":  "missing_key",
+                          "models":  0,
+                          "configured":  5,
+                          "chat_ok":  0,
+                          "chat_total":  5,
+                          "latency_avg_ms":  0,
+                          "error":  "missing API key"
+                      },
+                      {
+                          "provider":  "nvidia",
+                          "status":  "ok",
+                          "models":  120,
+                          "configured":  5,
+                          "chat_ok":  4,
+                          "chat_total":  5,
+                          "latency_avg_ms":  2569,
+                          "error":  ""
+                      },
+                      {
+                          "provider":  "openrouter",
+                          "status":  "ok",
+                          "models":  337,
+                          "configured":  5,
+                          "chat_ok":  5,
+                          "chat_total":  5,
+                          "latency_avg_ms":  1828,
+                          "error":  ""
+                      },
+                      {
+                          "provider":  "groq",
+                          "status":  "ok",
+                          "models":  16,
+                          "configured":  5,
+                          "chat_ok":  5,
+                          "chat_total":  5,
+                          "latency_avg_ms":  416,
+                          "error":  ""
+                      },
+                      {
+                          "provider":  "ollama",
+                          "status":  "ok",
+                          "models":  41,
+                          "configured":  6,
+                          "chat_ok":  6,
+                          "chat_total":  6,
+                          "latency_avg_ms":  2639,
+                          "error":  ""
+                      },
+                      {
+                          "provider":  "moonshot",
+                          "status":  "ok",
+                          "models":  9,
+                          "configured":  5,
+                          "chat_ok":  3,
+                          "chat_total":  5,
+                          "latency_avg_ms":  799,
+                          "error":  ""
+                      },
+                      {
+                          "provider":  "cerebras",
+                          "status":  "ok",
+                          "models":  2,
+                          "configured":  2,
+                          "chat_ok":  2,
+                          "chat_total":  2,
+                          "latency_avg_ms":  323,
+                          "error":  ""
+                      }
+                  ],
+    "models":  [
+                   {
+                       "provider":  "deepseek",
+                       "configured_model":  "deepseek-v4-pro",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "deepseek",
+                       "configured_model":  "deepseek-coder-6.7b-instruct",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "openai",
+                       "configured_model":  "gpt-5",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "openai",
+                       "configured_model":  "gpt-5-mini",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "openai",
+                       "configured_model":  "gpt-4.1",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "openai",
+                       "configured_model":  "gpt-4o",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "openai",
+                       "configured_model":  "gpt-oss-120b",
+                       "catalog_model":  "",
+                       "list_status":  "missing_key",
+                       "chat_status":  "not_tested",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "missing API key"
+                   },
+                   {
+                       "provider":  "nvidia",
+                       "configured_model":  "qwen/qwen3-coder-480b-a35b-instruct",
+                       "catalog_model":  "qwen/qwen3-coder-480b-a35b-instruct",
+                       "list_status":  "ok",
+                       "chat_status":  "http_410",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "Error en el servidor remoto: (410) Desaparecido."
+                   },
+                   {
+                       "provider":  "nvidia",
+                       "configured_model":  "moonshotai/kimi-k2.6",
+                       "catalog_model":  "moonshotai/kimi-k2.6",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  694,
+                       "sample":  " OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "nvidia",
+                       "configured_model":  "nvidia/nemotron-3-super-120b-a12b",
+                       "catalog_model":  "nvidia/nemotron-3-super-120b-a12b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  3853,
+                       "sample":  "The user says: \"Reply exactly OK\". So we must output exactly \"OK\". No extra spaces, no newline? Probably just \"OK\". Ensure no extra",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "nvidia",
+                       "configured_model":  "openai/gpt-oss-120b",
+                       "catalog_model":  "openai/gpt-oss-120b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  727,
+                       "sample":  "The user says: \"Reply exactly OK\". So we must respond with exactly \"OK\". No extra punctuation, no extra spaces, no newline?",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "nvidia",
+                       "configured_model":  "qwen/qwen3.5-397b-a17b",
+                       "catalog_model":  "qwen/qwen3.5-397b-a17b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  5003,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "openrouter",
+                       "configured_model":  "qwen/qwen3-coder",
+                       "catalog_model":  "qwen/qwen3-coder",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  2383,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "openrouter",
+                       "configured_model":  "nvidia/nemotron-3-super-120b-a12b",
+                       "catalog_model":  "nvidia/nemotron-3-super-120b-a12b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  699,
+                       "sample":  "The user says: \"Reply exactly OK\". So we must output exactly \"OK\". No extra spaces, no newline? Usually just \"OK\". Ensure no extra",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "openrouter",
+                       "configured_model":  "nvidia/nemotron-3-ultra-550b-a55b",
+                       "catalog_model":  "nvidia/nemotron-3-ultra-550b-a55b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  1796,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "openrouter",
+                       "configured_model":  "moonshotai/kimi-k2.6",
+                       "catalog_model":  "moonshotai/kimi-k2.6",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  962,
+                       "sample":  " OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "openrouter",
+                       "configured_model":  "deepseek/deepseek-v4-pro",
+                       "catalog_model":  "deepseek/deepseek-v4-pro",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  3300,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "groq",
+                       "configured_model":  "llama-3.3-70b-versatile",
+                       "catalog_model":  "llama-3.3-70b-versatile",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  329,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "groq",
+                       "configured_model":  "qwen/qwen3-32b",
+                       "catalog_model":  "qwen/qwen3-32b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  402,
+                       "sample":  "\u003cthink\u003e\nOkay, the user wants me to reply exactly with \"OK\". Let me make sure I understand the request correctly. They provided a query where they asked",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "groq",
+                       "configured_model":  "meta-llama/llama-4-scout-17b-16e-instruct",
+                       "catalog_model":  "meta-llama/llama-4-scout-17b-16e-instruct",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  672,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "groq",
+                       "configured_model":  "openai/gpt-oss-120b",
+                       "catalog_model":  "openai/gpt-oss-120b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  377,
+                       "sample":  "The user says: \"Reply exactly OK\". So we must respond with exactly \"OK\". No extra punctuation, no extra whitespace? Probably just \"",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "groq",
+                       "configured_model":  "openai/gpt-oss-20b",
+                       "catalog_model":  "openai/gpt-oss-20b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  302,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "qwen3-coder:480b",
+                       "catalog_model":  "qwen3-coder:480b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  812,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "qwen3-coder-next",
+                       "catalog_model":  "qwen3-coder-next",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  620,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "devstral-2:123b",
+                       "catalog_model":  "devstral-2:123b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  731,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "kimi-k2.6",
+                       "catalog_model":  "kimi-k2.6",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  11519,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "mistral",
+                       "catalog_model":  "mistral-large-3:675b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  869,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "ollama",
+                       "configured_model":  "deepseek-v4-pro",
+                       "catalog_model":  "deepseek-v4-pro",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  1284,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "moonshot",
+                       "configured_model":  "kimi-k2.6",
+                       "catalog_model":  "kimi-k2.6",
+                       "list_status":  "ok",
+                       "chat_status":  "http_400",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "Error en el servidor remoto: (400) Solicitud incorrecta."
+                   },
+                   {
+                       "provider":  "moonshot",
+                       "configured_model":  "kimi-k2.5",
+                       "catalog_model":  "kimi-k2.5",
+                       "list_status":  "ok",
+                       "chat_status":  "http_400",
+                       "latency_ms":  0,
+                       "sample":  "",
+                       "error":  "Error en el servidor remoto: (400) Solicitud incorrecta."
+                   },
+                   {
+                       "provider":  "moonshot",
+                       "configured_model":  "moonshot-v1-128k",
+                       "catalog_model":  "moonshot-v1-128k",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  848,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "moonshot",
+                       "configured_model":  "moonshot-v1-auto",
+                       "catalog_model":  "moonshot-v1-auto",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  668,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "moonshot",
+                       "configured_model":  "moonshot-v1-32k",
+                       "catalog_model":  "moonshot-v1-32k",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  881,
+                       "sample":  "OK",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "cerebras",
+                       "configured_model":  "zai-glm-4.7",
+                       "catalog_model":  "zai-glm-4.7",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  344,
+                       "sample":  "The user wants a very specific response: \"OK\". I need to ensure I don\u0027t add any extra text, punctuation, or formatting that deviates from this",
+                       "error":  ""
+                   },
+                   {
+                       "provider":  "cerebras",
+                       "configured_model":  "gpt-oss-120b",
+                       "catalog_model":  "gpt-oss-120b",
+                       "list_status":  "ok",
+                       "chat_status":  "ok",
+                       "latency_ms":  302,
+                       "sample":  "The user says: \"Reply exactly OK\". So they want the assistant to respond with exactly \"OK\". No extra punctuation, no extra whitespace?",
+                       "error":  ""
+                   }
+               ],
+    "proxy":  {
+                  "status":  "ok",
+                  "tags":  [
+                               "zai-glm-4.7 (cerebras):latest",
+                               "deepseek-v4-pro (deepseek):latest",
+                               "llama-3.3-70b-versatile (groq):latest",
+                               "kimi-k2.6 (moonshot):latest",
+                               "qwen/qwen3-coder-480b-a35b-instruct (nvidia):latest",
+                               "qwen3-coder:480b (ollama):latest",
+                               "qwen/qwen3-coder (openrouter):latest",
+                               "gpt-oss-120b (cerebras):latest",
+                               "deepseek-coder-6.7b-instruct (deepseek):latest",
+                               "qwen/qwen3-32b (groq):latest",
+                               "kimi-k2.5 (moonshot):latest",
+                               "moonshotai/kimi-k2.6 (nvidia):latest",
+                               "qwen3-coder-next (ollama):latest",
+                               "nvidia/nemotron-3-super-120b-a12b (openrouter):latest",
+                               "meta-llama/llama-4-scout-17b-16e-instruct (groq):latest",
+                               "moonshot-v1-128k (moonshot):latest",
+                               "nvidia/nemotron-3-super-120b-a12b (nvidia):latest",
+                               "devstral-2:123b (ollama):latest",
+                               "nvidia/nemotron-3-ultra-550b-a55b (openrouter):latest",
+                               "openai/gpt-oss-120b (groq):latest",
+                               "moonshot-v1-auto (moonshot):latest",
+                               "openai/gpt-oss-120b (nvidia):latest",
+                               "kimi-k2.6 (ollama):latest",
+                               "mistral (ollama):latest",
+                               "moonshotai/kimi-k2.6 (openrouter):latest",
+                               "openai/gpt-oss-20b (groq):latest",
+                               "moonshot-v1-32k (moonshot):latest",
+                               "qwen/qwen3.5-397b-a17b (nvidia):latest",
+                               "deepseek-v4-pro (ollama):latest",
+                               "deepseek/deepseek-v4-pro (openrouter):latest"
+                           ]
+              }
+}
