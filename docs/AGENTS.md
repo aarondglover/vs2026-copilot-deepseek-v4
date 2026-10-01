@@ -384,3 +384,8 @@ Set a breakpoint in `RequestTransformer.ApplyExecutionDefaults()` and examine th
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design, components, data flow
 - **[TESTING.md](docs/TESTING.md)** — Test architecture, running tests, adding new tests
 - **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** — Docker, bare metal, monitoring, troubleshooting
+
+## Attribution trailers
+
+Never add `Co-authored-by` or similar attribution trailers to commit messages, PR bodies, or issue/PR
+comments unless the user explicitly requests it. Commit messages are plain descriptive sentences.

@@ -197,3 +197,8 @@ Per `.github/copilot-instructions.md`: **Never confuse Ollama Cloud API keys wit
 | `config/model-selection/` | Per-provider model JSON configs (8 files) |
 
 Further detail is available in `docs/ARCHITECTURE.md`, `docs/AGENTS.md`, `docs/API.md`, `docs/CONFIGURATION.md`, `docs/TESTING.md`, and `docs/DEPLOYMENT.md`.
+
+## Attribution trailers
+
+Never add `Co-authored-by` or similar attribution trailers to commit messages, PR bodies, or issue/PR
+comments unless the user explicitly requests it. Commit messages are plain descriptive sentences.
